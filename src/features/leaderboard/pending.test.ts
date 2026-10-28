@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { submitResult, SubmitError, type ResultPayload } from './api'
+import { loadMyResultIds } from './myResults'
 import { flushPending, loadPending, submitGame, type PendingSubmission } from './pending'
 
 vi.mock('./api', async (importOriginal) => ({
@@ -22,10 +23,20 @@ beforeEach(() => {
 })
 
 describe('fila de reenvio', () => {
-  it('remove da fila após envio com sucesso', async () => {
-    submit.mockResolvedValue('id')
+  it('envia com o gameId como chave, remove da fila e guarda o id do resultado', async () => {
+    submit.mockResolvedValueOnce('result-1').mockResolvedValueOnce('result-2')
     await submitGame(item('g1'))
+    await submitGame(item('g2'))
+    expect(submit).toHaveBeenCalledWith('g1', item('g1').payload)
     expect(loadPending()).toEqual([])
+    expect(loadMyResultIds()).toEqual(['result-2', 'result-1'])
+  })
+
+  it('reenvio aceito pelo servidor (idempotente) não duplica o id guardado', async () => {
+    submit.mockResolvedValue('result-1')
+    await submitGame(item('g1'))
+    await submitGame(item('g1'))
+    expect(loadMyResultIds()).toEqual(['result-1'])
   })
 
   it('mantém na fila após erro transitório', async () => {

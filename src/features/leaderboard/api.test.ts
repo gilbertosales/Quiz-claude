@@ -23,7 +23,7 @@ beforeEach(() => {
 
 async function submitErrorKind(error: { message?: string; code?: string }) {
   rpc.mockResolvedValue({ data: null, error })
-  const err = await submitResult(payload).catch((e: unknown) => e)
+  const err = await submitResult('game-1', payload).catch((e: unknown) => e)
   expect(err).toBeInstanceOf(SubmitError)
   return (err as SubmitError).kind
 }
@@ -31,8 +31,9 @@ async function submitErrorKind(error: { message?: string; code?: string }) {
 describe('submitResult', () => {
   it('chama a RPC submit_result com os parâmetros mapeados', async () => {
     rpc.mockResolvedValue({ data: 'uuid-1', error: null })
-    await expect(submitResult(payload)).resolves.toBe('uuid-1')
+    await expect(submitResult('game-1', payload)).resolves.toBe('uuid-1')
     expect(rpc).toHaveBeenCalledWith('submit_result', {
+      p_client_game_id: 'game-1',
       p_name: 'Ana',
       p_email: 'ana@empresa.com',
       p_score: 30,
@@ -52,6 +53,7 @@ describe('submitResult', () => {
       'rateLimited',
     )
     expect(await submitErrorKind({ code: '23514', message: 'check constraint' })).toBe('invalid')
+    expect(await submitErrorKind({ code: '22023', message: 'invalid result' })).toBe('invalid')
     expect(await submitErrorKind({ code: '', message: 'TypeError: Failed to fetch' })).toBe(
       'network',
     )
@@ -59,7 +61,7 @@ describe('submitResult', () => {
 
   it('falha como "unavailable" sem Supabase configurado', async () => {
     vi.mocked(getSupabase).mockResolvedValue(null)
-    await expect(submitResult(payload)).rejects.toMatchObject({
+    await expect(submitResult('game-1', payload)).rejects.toMatchObject({
       kind: 'unavailable',
       permanent: false,
     })
@@ -82,8 +84,11 @@ describe('fetchLeaderboard', () => {
       ],
       error: null,
     })
-    const rows = await fetchLeaderboard('ana@empresa.com')
-    expect(rpc).toHaveBeenCalledWith('get_leaderboard', { p_limit: 50, p_email: 'ana@empresa.com' })
+    const rows = await fetchLeaderboard(['id-1', 'id-2'])
+    expect(rpc).toHaveBeenCalledWith('get_leaderboard', {
+      p_limit: 50,
+      p_result_ids: ['id-1', 'id-2'],
+    })
     expect(rows).toEqual([
       {
         position: 1,

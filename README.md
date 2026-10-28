@@ -53,7 +53,13 @@ Depois, cadastre os domínios permitidos no SQL Editor. Eles devem espelhar `VIT
 insert into public.allowed_domains (domain) values ('empresa.com'), ('empresa.com.br');
 ```
 
-Regras aplicadas no banco: 1 envio por e-mail a cada 60 s, partida entre 10 s e 2 h, e o ranking considera a melhor partida por e-mail, sem expor o e-mail.
+Regras aplicadas no banco:
+
+- **Envio idempotente:** cada partida tem um `client_game_id` gerado no navegador. Reenviar a mesma partida devolve o id já gravado, sem duplicar.
+- **Rate limit:** 1 envio por e-mail a cada 60 s, serializado por e-mail (sem corrida entre envios simultâneos).
+- **Validação:** partida entre 10 s e 2 h, exatamente 20 perguntas, e `score` / `correct_count` coerentes com os acertos por nível.
+- **Ranking:** melhor partida por e-mail, sem expor o e-mail, com no máximo 100 linhas por consulta.
+- **"Você" no ranking:** a pessoa é reconhecida pelos ids de partida que o navegador recebeu no envio, nunca pelo e-mail. Por isso não dá para consultar a posição de outra pessoa a partir do e-mail dela.
 
 > **Risco aceito (v1):** a pontuação é calculada no cliente. Veja a §7.5 do PRD.
 

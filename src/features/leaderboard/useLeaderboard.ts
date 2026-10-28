@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchLeaderboard, type LeaderboardRow } from './api'
+import { loadMyResultIds } from './myResults'
 
 export type LeaderboardStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -9,16 +10,17 @@ interface Settled {
   error: string | null
 }
 
-export function useLeaderboard(email: string | null, enabled = true) {
+export function useLeaderboard(enabled = true) {
   const [attempt, setAttempt] = useState(0)
   const [settled, setSettled] = useState<Settled | null>(null)
   // "loading" é derivado: há requisição para esta chave ainda sem resposta.
-  const key = `${email ?? ''}#${attempt}`
+  const key = String(attempt)
 
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
-    fetchLeaderboard(email)
+    // Lido na hora da requisição: inclui a partida que acabou de ser enviada.
+    fetchLeaderboard(loadMyResultIds())
       .then((rows) => {
         if (!cancelled) setSettled({ key, rows, error: null })
       })
@@ -31,7 +33,7 @@ export function useLeaderboard(email: string | null, enabled = true) {
     return () => {
       cancelled = true
     }
-  }, [email, enabled, key])
+  }, [enabled, key])
 
   const reload = useCallback(() => setAttempt((n) => n + 1), [])
 

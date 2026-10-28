@@ -1,13 +1,9 @@
 import { Link } from 'react-router-dom'
-import { loadIdentity } from '../../features/identity/storedIdentity'
 import { LeaderboardSkeleton, LeaderboardTable } from '../../features/leaderboard/LeaderboardTable'
 import { useLeaderboard } from '../../features/leaderboard/useLeaderboard'
-import { useQuiz } from '../../features/quiz/useQuiz'
 
 export default function RankingPage() {
-  const { state } = useQuiz()
-  const email = state.identity?.email ?? loadIdentity()?.email ?? null
-  const { status, rows, error, reload } = useLeaderboard(email)
+  const { status, rows, error, reload } = useLeaderboard()
 
   return (
     <div className="space-y-5">

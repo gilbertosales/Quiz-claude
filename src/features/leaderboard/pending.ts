@@ -1,8 +1,10 @@
 import { isObject, readJSON, STORAGE_KEYS, writeJSON } from '../../lib/storage'
 import { submitResult, SubmitError, type ResultPayload } from './api'
+import { addMyResultId } from './myResults'
 
 // Fila de reenvio (RF17): toda partida entra na fila antes do envio e só sai quando o servidor
 // confirma ou recusa de forma permanente. Assim nada se perde se a aba fechar no meio do envio.
+// O envio é idempotente por gameId no servidor, então reenviar uma partida já gravada é seguro.
 
 export interface PendingSubmission {
   gameId: string
@@ -39,8 +41,11 @@ export function submitGame(item: PendingSubmission): Promise<void> {
   const running = inFlight.get(item.gameId)
   if (running) return running
   enqueue(item)
-  const promise = submitResult(item.payload)
-    .then(() => removePending(item.gameId))
+  const promise = submitResult(item.gameId, item.payload)
+    .then((resultId) => {
+      addMyResultId(resultId)
+      removePending(item.gameId)
+    })
     .catch((err: unknown) => {
       const error = err instanceof SubmitError ? err : new SubmitError('network')
       if (error.permanent) removePending(item.gameId)

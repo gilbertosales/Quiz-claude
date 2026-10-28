@@ -58,7 +58,11 @@ test('partida completa pelo teclado, envio e ranking sem e-mails', async ({ page
     submitted.push(route.request().postDataJSON())
     await json(route, 'b6f0a1d2-0000-4000-8000-000000000000')
   })
-  await page.route(RPC + 'get_leaderboard', (route) => json(route, leaderboardRows('Ana Souza')))
+  const leaderboardCalls: Record<string, unknown>[] = []
+  await page.route(RPC + 'get_leaderboard', (route) => {
+    leaderboardCalls.push(route.request().postDataJSON())
+    return json(route, leaderboardRows('Ana Souza'))
+  })
 
   await identify(page)
   await answer(page, 20)
@@ -73,6 +77,12 @@ test('partida completa pelo teclado, envio e ranking sem e-mails', async ({ page
     p_app_version: 'e2e',
   })
   expect(submitted[0].p_question_ids).toHaveLength(20)
+  expect(submitted[0].p_client_game_id).toMatch(/^[0-9a-f-]{36}$/)
+  // O ranking identifica a pessoa pelo id devolvido no envio, nunca pelo e-mail.
+  expect(leaderboardCalls.at(-1)).toEqual({
+    p_limit: 50,
+    p_result_ids: ['b6f0a1d2-0000-4000-8000-000000000000'],
+  })
 
   await page.getByRole('button', { name: 'Ver ranking' }).click()
   const table = page.getByRole('table')

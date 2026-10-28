@@ -26,7 +26,7 @@ const RESULT_PHASES = new Set(['finished', 'submitting', 'done', 'submitError'])
 export default function ResultPage() {
   const { state, dispatch } = useQuiz()
   const navigate = useNavigate()
-  const { phase, questions, answers, identity } = state
+  const { phase, questions, answers } = state
   const summary = useMemo(() => scoreAnswers(questions, answers), [questions, answers])
   const duration = durationMs(state)
 
@@ -60,7 +60,7 @@ export default function ResultPage() {
     submit()
   }, [phase, state, submit])
 
-  const leaderboard = useLeaderboard(identity?.email ?? null, phase === 'done')
+  const leaderboard = useLeaderboard(phase === 'done')
   const myPosition = leaderboard.rows.find((r) => r.isMe)?.position
 
   if (!RESULT_PHASES.has(phase)) return <Navigate to="/" replace />

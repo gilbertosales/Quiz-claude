@@ -63,7 +63,8 @@ describe('fluxo do quiz', () => {
     expect(await screen.findByRole('heading', { name: 'Resultado' })).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText(/Resultado salvo no ranking/)).toBeInTheDocument())
     expect(submitResult).toHaveBeenCalledTimes(1)
-    const payload = vi.mocked(submitResult).mock.calls[0][0]
+    const [gameId, payload] = vi.mocked(submitResult).mock.calls[0]
+    expect(gameId).toMatch(/^[0-9a-f-]{36}$/)
     // Respondeu "Verdadeiro" em tudo: acerta exatamente as afirmações verdadeiras.
     const trueCount = payload.questionIds.filter((id) => QUESTIONS_BY_ID.get(id)?.answer).length
     expect(payload).toMatchObject({

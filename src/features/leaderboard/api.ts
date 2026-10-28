@@ -53,15 +53,21 @@ function classify(error: PostgrestLikeError): SubmitErrorKind {
   const message = error.message ?? ''
   if (message.includes('email domain not allowed')) return 'domain'
   if (message.includes('too many submissions')) return 'rateLimited'
-  // check_violation, not_null_violation, invalid_text_representation, função/parâmetros inválidos
-  if (['23514', '23502', '22P02', 'PGRST202'].includes(error.code ?? '')) return 'invalid'
+  // check_violation, not_null_violation, invalid_parameter_value (resultado incoerente),
+  // invalid_text_representation, função/parâmetros inválidos
+  if (['23514', '23502', '22023', '22P02', 'PGRST202'].includes(error.code ?? '')) return 'invalid'
   return 'network'
 }
 
-export async function submitResult(payload: ResultPayload): Promise<string> {
+/**
+ * Envia o resultado e devolve o id da partida no servidor. Idempotente por `clientGameId`:
+ * reenviar a mesma partida devolve o mesmo id, sem duplicar.
+ */
+export async function submitResult(clientGameId: string, payload: ResultPayload): Promise<string> {
   const supabase = await getSupabase()
   if (!supabase) throw new SubmitError('unavailable')
   const { data, error } = await supabase.rpc('submit_result', {
+    p_client_game_id: clientGameId,
     p_name: payload.name,
     p_email: payload.email,
     p_score: payload.score,
@@ -85,15 +91,16 @@ interface LeaderboardRowDb {
   is_me: boolean
 }
 
+/** `resultIds`: ids devolvidos a este navegador pelo submit_result, usados para marcar is_me. */
 export async function fetchLeaderboard(
-  email: string | null,
+  resultIds: readonly string[],
   limit = 50,
 ): Promise<LeaderboardRow[]> {
   const supabase = await getSupabase()
   if (!supabase) throw new SubmitError('unavailable')
   const { data, error } = await supabase.rpc('get_leaderboard', {
     p_limit: limit,
-    p_email: email,
+    p_result_ids: resultIds,
   })
   if (error) throw new SubmitError(classify(error))
   return ((data ?? []) as LeaderboardRowDb[]).map((r) => ({

@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
   identity: 'qcc:identity',
   history: 'qcc:history',
   pending: 'qcc:pending',
+  myResults: 'qcc:my-results',
   quiz: 'qcc:quiz',
 } as const
 
