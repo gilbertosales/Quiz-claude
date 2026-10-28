@@ -34,3 +34,6 @@ playwright-report
 coverage
 supabase/.temp
 dist-e2e
+
+# variáveis para importar na Vercel (contém a chave)
+vercel.env

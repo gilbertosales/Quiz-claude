@@ -67,6 +67,8 @@ Regras aplicadas no banco:
 
 ## Deploy na Vercel
 
+> 📖 **Primeira vez?** Siga o guia ilustrado [`docs/VERCEL.md`](./docs/VERCEL.md), com prints de cada tela, as variáveis e os erros mais comuns.
+
 - Framework preset: **Vite**. Build: `npm run build`. Output: `dist`.
 - O `vercel.json` já tem o rewrite de SPA.
 - Configure as quatro variáveis `VITE_*` em **Production** e **Preview**.
