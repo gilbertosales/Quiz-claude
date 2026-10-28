@@ -1,0 +1,8 @@
+dist
+coverage
+playwright-report
+test-results
+supabase/.temp
+package-lock.json
+.claude/prd.md
+dist-e2e
