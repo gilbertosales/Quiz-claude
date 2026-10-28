@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { DocLink } from '../../components/DocLink'
 import { LevelBadge } from '../../components/LevelBadge'
+import { PageHeading } from '../../components/PageHeading'
 import { LEVEL_STYLES } from '../../components/levels'
 import { RichText } from '../../components/RichText'
 import { ApiError } from '../../features/leaderboard/api'
@@ -21,6 +22,7 @@ import {
   QUESTIONS_PER_LEVEL,
   TOTAL_QUESTIONS,
 } from '../../types/quiz'
+import { usePageTitle } from '../pageMeta'
 
 export default function ResultPage() {
   const { state, dispatch } = useQuiz()
@@ -28,6 +30,7 @@ export default function ResultPage() {
   const { phase, questions, answers } = state
   const summary = useMemo(() => scoreAnswers(questions, answers), [questions, answers])
   const duration = durationMs(state)
+  usePageTitle('Resultado')
 
   const submit = useCallback(() => {
     const item = toPendingSubmission(state)
@@ -68,7 +71,7 @@ export default function ResultPage() {
   return (
     <div className="space-y-6">
       <section className="card space-y-4 text-center">
-        <h1 className="text-2xl font-bold">Resultado</h1>
+        <PageHeading className="text-2xl font-bold">Resultado</PageHeading>
         <p className="text-5xl font-extrabold tabular-nums">
           {summary.score}
           <span className="text-2xl font-bold text-slate-500 dark:text-slate-400">

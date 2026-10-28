@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
+import { PageHeading } from '../../components/PageHeading'
 import type { Identity } from '../../types/quiz'
 import { loadIdentity } from './storedIdentity'
 import { makeIdentitySchema } from './validation'
@@ -54,7 +55,7 @@ export function IdentityForm({ onSubmit }: { onSubmit: (identity: Identity) => v
   return (
     <form ref={formRef} noValidate onSubmit={handleSubmit} className="card space-y-5">
       <div>
-        <h2 className="text-2xl font-bold">Antes de começar</h2>
+        <PageHeading className="text-2xl font-bold">Antes de começar</PageHeading>
         <p className="mt-1 text-slate-600 dark:text-slate-400">
           Seu nome aparece no ranking; o e-mail só identifica você e nunca é exibido.
         </p>

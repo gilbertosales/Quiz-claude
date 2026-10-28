@@ -20,9 +20,9 @@ export function LevelTransition({ completed, correct, next, onContinue }: Props)
 
   return (
     <div className="card motion-safe:animate-fade-in space-y-5 text-center">
-      <h2 id="level-done" className="text-2xl font-bold">
+      <h1 id="level-done" className="text-2xl font-bold">
         Nível {LEVEL_LABELS[completed]} concluído: {correct}/{QUESTIONS_PER_LEVEL}
-      </h2>
+      </h1>
       <div className="space-y-2">
         <p className="text-slate-600 dark:text-slate-400">A seguir:</p>
         <LevelBadge level={next} />

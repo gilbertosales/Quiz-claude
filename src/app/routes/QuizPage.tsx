@@ -12,7 +12,8 @@ import { scoreAnswers } from '../../features/quiz/scoring'
 import { RESULT_PHASES } from '../../features/quiz/quizReducer'
 import { useQuiz } from '../../features/quiz/useQuiz'
 import { newId } from '../../lib/id'
-import type { Identity } from '../../types/quiz'
+import { LEVEL_LABELS, type Identity } from '../../types/quiz'
+import { usePageTitle } from '../pageMeta'
 
 export default function QuizPage() {
   const { state, dispatch } = useQuiz()
@@ -27,6 +28,14 @@ export default function QuizPage() {
     [dispatch],
   )
   const onNext = useCallback(() => dispatch({ type: 'NEXT' }), [dispatch])
+
+  usePageTitle(
+    phase === 'levelTransition' && index > 0
+      ? `Nível ${LEVEL_LABELS[questions[index - 1].level]} concluído`
+      : phase === 'playing' || phase === 'feedback'
+        ? `Pergunta ${index + 1} de ${questions.length}`
+        : 'Identificação',
+  )
 
   function onIdentity(identity: Identity) {
     saveIdentity(identity)

@@ -7,6 +7,7 @@ import { loadPending } from '../features/leaderboard/pending'
 import { loadHistory } from '../features/quiz/history'
 import { STORAGE_KEYS } from '../lib/storage'
 import { App } from './App'
+import { resetNavigationFocus } from './pageMeta'
 
 vi.mock('../lib/supabase', () => ({ isSupabaseConfigured: true, getSupabase: vi.fn() }))
 
@@ -18,6 +19,7 @@ vi.mock('../features/leaderboard/api', async (importOriginal) => ({
 
 beforeEach(() => {
   window.history.pushState({}, '', '/')
+  resetNavigationFocus()
   vi.mocked(submitResult).mockReset()
 })
 
@@ -116,5 +118,43 @@ describe('fluxo do quiz', () => {
     await user.keyboard('v{Enter}v')
     const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.quiz)!)
     expect(saved).toMatchObject({ phase: 'feedback', index: 1 })
+  })
+})
+
+describe('navegação acessível', () => {
+  it('na carga inicial não move o foco, mas define o título', () => {
+    render(<App />)
+    expect(document.title).toBe('Quiz Claude Code')
+    expect(screen.getByRole('heading', { level: 1 })).not.toHaveFocus()
+  })
+
+  it('ao navegar, foca o título da nova página e atualiza o título da aba', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Ver ranking' }))
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Ranking' })
+    await waitFor(() => expect(heading).toHaveFocus())
+    expect(document.title).toBe('Ranking · Quiz Claude Code')
+
+    await user.click(screen.getByRole('link', { name: 'Voltar ao início' }))
+    expect(screen.getByRole('heading', { level: 1, name: /Verdadeiro ou Falso/ })).toHaveFocus()
+    expect(document.title).toBe('Quiz Claude Code')
+  })
+
+  it('o título da aba acompanha a partida', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Começar' }))
+    expect(document.title).toBe('Identificação · Quiz Claude Code')
+    expect(screen.getByRole('heading', { level: 1, name: 'Antes de começar' })).toHaveFocus()
+
+    await user.type(screen.getByLabelText('Nome'), 'Ana Souza')
+    await user.type(screen.getByLabelText('E-mail corporativo'), 'ana@empresa.com')
+    await user.click(screen.getByLabelText(/Concordo/))
+    await user.click(screen.getByRole('button', { name: 'Começar o quiz' }))
+    expect(document.title).toBe('Pergunta 1 de 20 · Quiz Claude Code')
+
+    for (let i = 0; i < 5; i++) await user.keyboard('v{Enter}')
+    expect(document.title).toBe('Nível Negócio concluído · Quiz Claude Code')
   })
 })

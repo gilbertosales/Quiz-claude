@@ -157,3 +157,26 @@ test('não há scroll horizontal', async ({ page }) => {
   )
   expect(overflow).toBeLessThanOrEqual(0)
 })
+
+test('ao terminar a partida, o foco vai para o título do resultado', async ({ page }) => {
+  await page.route(RPC + 'submit_result', (route) =>
+    json(route, 'b6f0a1d2-0000-4000-8000-000000000002'),
+  )
+  await page.route(RPC + 'get_leaderboard', (route) => json(route, leaderboardRows('Ana Souza')))
+  await identify(page)
+  await expect(page).toHaveTitle('Pergunta 1 de 20 · Quiz Claude Code')
+  await answer(page, 20)
+  await expect(page.getByRole('heading', { level: 1, name: 'Resultado' })).toBeFocused()
+  await expect(page).toHaveTitle('Resultado · Quiz Claude Code')
+})
+
+test('falha ao carregar uma tela mostra erro recuperável em vez de tela em branco', async ({
+  page,
+}) => {
+  await page.route('**/assets/RankingPage-*.js', (route) => route.abort())
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Ver ranking' }).click()
+  await expect(page.getByRole('alert')).toContainText('Algo deu errado')
+  await page.getByRole('button', { name: 'Voltar ao início' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: /Verdadeiro ou Falso/ })).toBeVisible()
+})

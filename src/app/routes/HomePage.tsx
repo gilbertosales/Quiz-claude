@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import { PageHeading } from '../../components/PageHeading'
+import { usePageTitle } from '../pageMeta'
 import { LevelBadge } from '../../components/LevelBadge'
 import { loadHistory } from '../../features/quiz/history'
 import { IN_PROGRESS_PHASES } from '../../features/quiz/quizReducer'
@@ -16,6 +18,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { best } = loadHistory()
   const inProgress = IN_PROGRESS_PHASES.has(state.phase)
+  usePageTitle(null)
 
   function start() {
     dispatch({ type: 'START' })
@@ -25,9 +28,9 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <section className="space-y-4 text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        <PageHeading className="text-3xl font-extrabold tracking-tight sm:text-4xl">
           Verdadeiro ou Falso: Claude Code
-        </h1>
+        </PageHeading>
         <p className="mx-auto max-w-prose text-lg text-slate-700 dark:text-slate-300">
           {TOTAL_QUESTIONS} afirmações em 4 níveis, do conceito ao uso avançado. Cada resposta traz
           uma explicação e o link para a documentação oficial. Leva uns 10 minutos.

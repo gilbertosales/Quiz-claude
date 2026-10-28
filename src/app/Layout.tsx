@@ -1,7 +1,23 @@
-import { Suspense } from 'react'
-import { Link, Outlet } from 'react-router-dom'
+import { Suspense, useCallback, useEffect } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useQuiz } from '../features/quiz/useQuiz'
+import { ErrorBoundary } from './ErrorBoundary'
+import { markInitialRenderDone } from './pageMeta'
 
 export function Layout() {
+  const { dispatch } = useQuiz()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  // Efeitos dos filhos rodam antes: a página da carga inicial não rouba o foco.
+  useEffect(() => markInitialRenderDone(), [])
+
+  // RESET também apaga a partida salva no sessionStorage, que pode ser a causa do erro.
+  const resetApp = useCallback(() => {
+    dispatch({ type: 'RESET' })
+    navigate('/')
+  }, [dispatch, navigate])
+
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -23,9 +39,12 @@ export function Layout() {
         </div>
       </header>
       <main id="conteudo" className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:py-10">
-        <Suspense fallback={<p className="text-center">Carregando…</p>}>
-          <Outlet />
-        </Suspense>
+        {/* key: trocar de rota (ex.: pelo cabeçalho) também tira a tela de erro. */}
+        <ErrorBoundary key={pathname} onReset={resetApp}>
+          <Suspense fallback={<p className="text-center">Carregando…</p>}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </main>
     </div>
   )

@@ -40,5 +40,7 @@ The toolchain uses TypeScript 7 (native), so lint is **oxlint** rather than the 
 ## Constraints
 
 - WCAG 2.1 AA: fully keyboard-playable (`V`/`F`/`←`/`→` answer, `Enter` next, handled in `QuestionCard`), `aria-live` feedback, focus moved on question change/answer, `motion-safe` animations ≤200ms.
+- Every screen has exactly one `<h1>`, rendered with `components/PageHeading.tsx` (it takes focus after in-app navigation, but not on the initial load). Every page sets its tab title with `usePageTitle` (`app/pageMeta.ts`). Exceptions: the question screen (`QuestionCard` focuses the statement) and the level transition (focus goes to its button).
+- Rendering errors and failed lazy-chunk loads are caught by `app/ErrorBoundary.tsx` in `Layout`. It is keyed by pathname, and "Voltar ao início" dispatches `RESET`, which also clears the saved game.
 - Mobile-first from 360px with no horizontal scroll (an E2E test checks this); initial bundle < 200 KB gzip.
 - Emails must never be rendered for other people; the leaderboard shows names only.
