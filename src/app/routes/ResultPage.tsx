@@ -4,10 +4,11 @@ import { DocLink } from '../../components/DocLink'
 import { LevelBadge } from '../../components/LevelBadge'
 import { LEVEL_STYLES } from '../../components/levels'
 import { RichText } from '../../components/RichText'
+import { ApiError } from '../../features/leaderboard/api'
 import { submitGame } from '../../features/leaderboard/pending'
 import { useLeaderboard } from '../../features/leaderboard/useLeaderboard'
 import { recordGame } from '../../features/quiz/history'
-import { durationMs } from '../../features/quiz/quizReducer'
+import { durationMs, RESULT_PHASES } from '../../features/quiz/quizReducer'
 import { scoreAnswers } from '../../features/quiz/scoring'
 import { toPendingSubmission } from '../../features/quiz/submission'
 import { useQuiz } from '../../features/quiz/useQuiz'
@@ -20,8 +21,6 @@ import {
   QUESTIONS_PER_LEVEL,
   TOTAL_QUESTIONS,
 } from '../../types/quiz'
-
-const RESULT_PHASES = new Set(['finished', 'submitting', 'done', 'submitError'])
 
 export default function ResultPage() {
   const { state, dispatch } = useQuiz()
@@ -36,11 +35,7 @@ export default function ResultPage() {
     dispatch({ type: 'FINISH' })
     submitGame(item).then(
       () => dispatch({ type: 'SUBMIT_OK' }),
-      (err: unknown) =>
-        dispatch({
-          type: 'SUBMIT_FAIL',
-          error: err instanceof Error ? err.message : 'Falha ao enviar o resultado.',
-        }),
+      (err: unknown) => dispatch({ type: 'SUBMIT_FAIL', error: describeSubmitError(err) }),
     )
   }, [state, dispatch])
 
@@ -197,6 +192,14 @@ export default function ResultPage() {
   )
 }
 
+/** Só promete reenvio quando a partida de fato continua na fila. */
+function describeSubmitError(err: unknown): string {
+  if (!(err instanceof ApiError)) return 'Falha ao enviar o resultado.'
+  if (err.kind === 'unavailable') return `${err.message} O resultado não entrou no ranking.`
+  if (err.permanent) return err.message
+  return `${err.message} Seu resultado ficou guardado neste navegador e será reenviado.`
+}
+
 function SubmitStatus({
   phase,
   error,
@@ -223,7 +226,7 @@ function SubmitStatus({
         <div className="space-y-2">
           <p className="text-red-700 dark:text-red-400">
             <span aria-hidden="true">⚠ </span>
-            {error} Seu resultado ficou guardado neste navegador e será reenviado.
+            {error}
           </p>
           <button type="button" className="btn-secondary" onClick={onRetry}>
             Tentar novamente

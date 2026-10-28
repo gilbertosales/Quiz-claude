@@ -2,11 +2,13 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QUESTIONS_BY_ID } from '../data/questions'
-import { submitResult, SubmitError } from '../features/leaderboard/api'
+import { submitResult, ApiError } from '../features/leaderboard/api'
 import { loadPending } from '../features/leaderboard/pending'
 import { loadHistory } from '../features/quiz/history'
 import { STORAGE_KEYS } from '../lib/storage'
 import { App } from './App'
+
+vi.mock('../lib/supabase', () => ({ isSupabaseConfigured: true, getSupabase: vi.fn() }))
 
 vi.mock('../features/leaderboard/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../features/leaderboard/api')>()),
@@ -80,7 +82,7 @@ describe('fluxo do quiz', () => {
 
   it('guarda o resultado na fila quando o envio falha e permite tentar de novo', async () => {
     vi.mocked(submitResult)
-      .mockRejectedValueOnce(new SubmitError('network'))
+      .mockRejectedValueOnce(new ApiError('network'))
       .mockResolvedValueOnce('uuid')
     const user = userEvent.setup()
     await startGame(user)

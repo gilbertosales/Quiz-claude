@@ -55,6 +55,9 @@ describe('isRestorableQuizState', () => {
     ['sem identidade', { identity: null }],
     ['sem gameId', { gameId: null }],
     ['startedAt inválido', { startedAt: 'ontem' }],
+    ['elapsedMs ausente', { elapsedMs: undefined }],
+    ['elapsedMs negativo', { elapsedMs: -1 }],
+    ['runningSince inválido', { runningSince: 'agora' }],
   ])('rejeita %s', (_, patch) => {
     expect(isRestorableQuizState({ ...playing(), ...patch })).toBe(false)
   })

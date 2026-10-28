@@ -9,11 +9,10 @@ import { IdentityForm } from '../../features/identity/IdentityForm'
 import { saveIdentity } from '../../features/identity/storedIdentity'
 import { drawQuestions } from '../../features/quiz/draw'
 import { scoreAnswers } from '../../features/quiz/scoring'
+import { RESULT_PHASES } from '../../features/quiz/quizReducer'
 import { useQuiz } from '../../features/quiz/useQuiz'
 import { newId } from '../../lib/id'
 import type { Identity } from '../../types/quiz'
-
-const RESULT_PHASES = new Set(['finished', 'submitting', 'done', 'submitError'])
 
 export default function QuizPage() {
   const { state, dispatch } = useQuiz()

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { LevelBadge } from '../../components/LevelBadge'
 import { loadHistory } from '../../features/quiz/history'
+import { IN_PROGRESS_PHASES } from '../../features/quiz/quizReducer'
 import { useQuiz } from '../../features/quiz/useQuiz'
 import {
   LEVELS,
@@ -10,13 +11,11 @@ import {
   TOTAL_QUESTIONS,
 } from '../../types/quiz'
 
-const IN_PROGRESS = new Set(['playing', 'feedback', 'levelTransition'])
-
 export default function HomePage() {
   const { state, dispatch } = useQuiz()
   const navigate = useNavigate()
   const { best } = loadHistory()
-  const inProgress = IN_PROGRESS.has(state.phase)
+  const inProgress = IN_PROGRESS_PHASES.has(state.phase)
 
   function start() {
     dispatch({ type: 'START' })

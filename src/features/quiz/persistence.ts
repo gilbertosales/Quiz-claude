@@ -1,27 +1,12 @@
 import { isObject, readJSON, removeItem, STORAGE_KEYS, writeJSON } from '../../lib/storage'
 import { LEVELS } from '../../types/quiz'
-import type { QuizPhase, QuizState } from './quizReducer'
+import { QUIZ_PHASES, RESULT_PHASES, type QuizState } from './quizReducer'
 
 // O sessionStorage pode conter um estado de outra versão do app ou adulterado. Restaurar algo
 // incoerente (ex.: index fora do array) quebraria a tela, então só aceitamos estados consistentes.
 
-const PHASES: ReadonlySet<string> = new Set<QuizPhase>([
-  'idle',
-  'identifying',
-  'playing',
-  'feedback',
-  'levelTransition',
-  'finished',
-  'submitting',
-  'done',
-  'submitError',
-])
-const RESULT_PHASES: ReadonlySet<string> = new Set<QuizPhase>([
-  'finished',
-  'submitting',
-  'done',
-  'submitError',
-])
+const PHASES: ReadonlySet<string> = QUIZ_PHASES
+const FINISHED_PHASES: ReadonlySet<string> = RESULT_PHASES
 
 const isNumberOrNull = (v: unknown) => v === null || (typeof v === 'number' && Number.isFinite(v))
 
@@ -39,6 +24,9 @@ export function isRestorableQuizState(v: unknown): v is QuizState {
   const { phase, questions, answers, index } = v
   if (!Array.isArray(questions) || !Array.isArray(answers)) return false
   if (!isNumberOrNull(v.startedAt) || !isNumberOrNull(v.finishedAt)) return false
+  if (!isNumberOrNull(v.runningSince)) return false
+  if (typeof v.elapsedMs !== 'number' || !Number.isFinite(v.elapsedMs) || v.elapsedMs < 0)
+    return false
   if (phase === 'idle' || phase === 'identifying') return true
 
   // Partida em andamento ou finalizada: tudo precisa ser coerente.
@@ -59,7 +47,7 @@ export function isRestorableQuizState(v: unknown): v is QuizState {
   if (phase === 'playing') return answers[index] === null
   if (phase === 'feedback') return answers[index] !== null
   if (phase === 'levelTransition') return index > 0 && answers[index] === null
-  if (RESULT_PHASES.has(phase)) {
+  if (FINISHED_PHASES.has(phase)) {
     return answers.every((a) => a !== null) && typeof v.finishedAt === 'number'
   }
   return false

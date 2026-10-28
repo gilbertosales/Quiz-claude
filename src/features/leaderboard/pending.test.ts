@@ -1,7 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { submitResult, SubmitError, type ResultPayload } from './api'
+import { submitResult, ApiError, type ResultPayload } from './api'
 import { loadMyResultIds } from './myResults'
-import { flushPending, loadPending, submitGame, type PendingSubmission } from './pending'
+import {
+  flushPending,
+  loadPending,
+  MAX_PENDING,
+  submitGame,
+  type PendingSubmission,
+} from './pending'
+
+const supabase = vi.hoisted(() => ({ configured: true }))
+vi.mock('../../lib/supabase', () => ({
+  get isSupabaseConfigured() {
+    return supabase.configured
+  },
+  getSupabase: vi.fn(),
+}))
 
 vi.mock('./api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./api')>()),
@@ -20,6 +34,7 @@ function item(gameId: string): PendingSubmission {
 
 beforeEach(() => {
   submit.mockReset()
+  supabase.configured = true
 })
 
 describe('fila de reenvio', () => {
@@ -40,7 +55,7 @@ describe('fila de reenvio', () => {
   })
 
   it('mantém na fila após erro transitório', async () => {
-    submit.mockRejectedValue(new SubmitError('network'))
+    submit.mockRejectedValue(new ApiError('network'))
     await expect(submitGame(item('g1'))).rejects.toMatchObject({ kind: 'network' })
     expect(loadPending().map((p) => p.gameId)).toEqual(['g1'])
   })
@@ -52,7 +67,7 @@ describe('fila de reenvio', () => {
   })
 
   it('descarta da fila após erro permanente', async () => {
-    submit.mockRejectedValue(new SubmitError('domain'))
+    submit.mockRejectedValue(new ApiError('domain'))
     await expect(submitGame(item('g1'))).rejects.toMatchObject({ kind: 'domain' })
     expect(loadPending()).toEqual([])
   })
@@ -64,14 +79,31 @@ describe('fila de reenvio', () => {
   })
 
   it('flushPending reenvia as pendentes e conta os sucessos', async () => {
-    submit.mockRejectedValue(new SubmitError('network'))
+    submit.mockRejectedValue(new ApiError('network'))
     await submitGame(item('g1')).catch(() => {})
     await submitGame(item('g2')).catch(() => {})
     expect(loadPending()).toHaveLength(2)
 
     submit.mockReset()
-    submit.mockResolvedValueOnce('a').mockRejectedValueOnce(new SubmitError('network'))
+    submit.mockResolvedValueOnce('a').mockRejectedValueOnce(new ApiError('network'))
     await expect(flushPending()).resolves.toBe(1)
     expect(loadPending().map((p) => p.gameId)).toEqual(['g2'])
+  })
+
+  it('sem Supabase configurado, falha como "unavailable" e não enfileira', async () => {
+    supabase.configured = false
+    await expect(submitGame(item('g1'))).rejects.toMatchObject({ kind: 'unavailable' })
+    expect(submit).not.toHaveBeenCalled()
+    expect(loadPending()).toEqual([])
+    await expect(flushPending()).resolves.toBe(0)
+  })
+
+  it(`mantém no máximo ${MAX_PENDING} partidas na fila, descartando as mais antigas`, async () => {
+    submit.mockRejectedValue(new ApiError('network'))
+    for (let i = 1; i <= MAX_PENDING + 2; i++) await submitGame(item(`g${i}`)).catch(() => {})
+    const ids = loadPending().map((p) => p.gameId)
+    expect(ids).toHaveLength(MAX_PENDING)
+    expect(ids[0]).toBe('g3')
+    expect(ids.at(-1)).toBe(`g${MAX_PENDING + 2}`)
   })
 })

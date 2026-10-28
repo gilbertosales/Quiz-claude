@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getSupabase } from '../../lib/supabase'
-import { fetchLeaderboard, submitResult, SubmitError, type ResultPayload } from './api'
+import { fetchLeaderboard, submitResult, ApiError, type ResultPayload } from './api'
 
 vi.mock('../../lib/supabase', () => ({ getSupabase: vi.fn() }))
 
@@ -24,8 +24,8 @@ beforeEach(() => {
 async function submitErrorKind(error: { message?: string; code?: string }) {
   rpc.mockResolvedValue({ data: null, error })
   const err = await submitResult('game-1', payload).catch((e: unknown) => e)
-  expect(err).toBeInstanceOf(SubmitError)
-  return (err as SubmitError).kind
+  expect(err).toBeInstanceOf(ApiError)
+  return (err as ApiError).kind
 }
 
 describe('submitResult', () => {

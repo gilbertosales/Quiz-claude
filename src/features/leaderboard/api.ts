@@ -22,9 +22,9 @@ export interface LeaderboardRow {
   isMe: boolean
 }
 
-export type SubmitErrorKind = 'unavailable' | 'network' | 'rateLimited' | 'domain' | 'invalid'
+export type ApiErrorKind = 'unavailable' | 'network' | 'rateLimited' | 'domain' | 'invalid'
 
-const MESSAGES: Record<SubmitErrorKind, string> = {
+const MESSAGES: Record<ApiErrorKind, string> = {
   unavailable: 'O ranking não está configurado neste ambiente.',
   network: 'Não foi possível conectar ao servidor.',
   rateLimited: 'Muitos envios seguidos. Tente novamente em instantes.',
@@ -32,9 +32,9 @@ const MESSAGES: Record<SubmitErrorKind, string> = {
   invalid: 'O resultado foi recusado pelo servidor.',
 }
 
-export class SubmitError extends Error {
-  readonly kind: SubmitErrorKind
-  constructor(kind: SubmitErrorKind) {
+export class ApiError extends Error {
+  readonly kind: ApiErrorKind
+  constructor(kind: ApiErrorKind) {
     super(MESSAGES[kind])
     this.kind = kind
   }
@@ -49,7 +49,7 @@ interface PostgrestLikeError {
   code?: string
 }
 
-function classify(error: PostgrestLikeError): SubmitErrorKind {
+function classify(error: PostgrestLikeError): ApiErrorKind {
   const message = error.message ?? ''
   if (message.includes('email domain not allowed')) return 'domain'
   if (message.includes('too many submissions')) return 'rateLimited'
@@ -65,7 +65,7 @@ function classify(error: PostgrestLikeError): SubmitErrorKind {
  */
 export async function submitResult(clientGameId: string, payload: ResultPayload): Promise<string> {
   const supabase = await getSupabase()
-  if (!supabase) throw new SubmitError('unavailable')
+  if (!supabase) throw new ApiError('unavailable')
   const { data, error } = await supabase.rpc('submit_result', {
     p_client_game_id: clientGameId,
     p_name: payload.name,
@@ -77,7 +77,7 @@ export async function submitResult(clientGameId: string, payload: ResultPayload)
     p_question_ids: payload.questionIds,
     p_app_version: payload.appVersion,
   })
-  if (error) throw new SubmitError(classify(error))
+  if (error) throw new ApiError(classify(error))
   return data as string
 }
 
@@ -97,12 +97,12 @@ export async function fetchLeaderboard(
   limit = 50,
 ): Promise<LeaderboardRow[]> {
   const supabase = await getSupabase()
-  if (!supabase) throw new SubmitError('unavailable')
+  if (!supabase) throw new ApiError('unavailable')
   const { data, error } = await supabase.rpc('get_leaderboard', {
     p_limit: limit,
     p_result_ids: resultIds,
   })
-  if (error) throw new SubmitError(classify(error))
+  if (error) throw new ApiError(classify(error))
   return ((data ?? []) as LeaderboardRowDb[]).map((r) => ({
     position: Number(r.position),
     name: r.name,

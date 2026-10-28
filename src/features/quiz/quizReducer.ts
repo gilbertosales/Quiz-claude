@@ -11,6 +11,33 @@ export type QuizPhase =
   | 'done'
   | 'submitError'
 
+export const QUIZ_PHASES: ReadonlySet<QuizPhase> = new Set<QuizPhase>([
+  'idle',
+  'identifying',
+  'playing',
+  'feedback',
+  'levelTransition',
+  'finished',
+  'submitting',
+  'done',
+  'submitError',
+])
+
+/** Partida em andamento: o cronômetro corre. */
+export const IN_PROGRESS_PHASES: ReadonlySet<QuizPhase> = new Set<QuizPhase>([
+  'playing',
+  'feedback',
+  'levelTransition',
+])
+
+/** Partida finalizada: a tela é a de resultado. */
+export const RESULT_PHASES: ReadonlySet<QuizPhase> = new Set<QuizPhase>([
+  'finished',
+  'submitting',
+  'done',
+  'submitError',
+])
+
 export interface QuizState {
   phase: QuizPhase
   identity: Identity | null
@@ -20,6 +47,10 @@ export interface QuizState {
   index: number
   startedAt: number | null
   finishedAt: number | null
+  /** Tempo ativo acumulado até `runningSince` (ou até o fim, se pausado/finalizado). */
+  elapsedMs: number
+  /** Início do trecho em andamento; null quando pausado (ex.: página fechada) ou finalizado. */
+  runningSince: number | null
   /** ID local da partida, usado na fila de reenvio. */
   gameId: string | null
   submitError: string | null
@@ -30,6 +61,8 @@ export type QuizAction =
   | { type: 'SET_IDENTITY'; identity: Identity; questions: Question[]; gameId: string; now: number }
   | { type: 'ANSWER'; answer: boolean; now: number }
   | { type: 'NEXT' }
+  | { type: 'PAUSE'; now: number }
+  | { type: 'RESUME'; now: number }
   | { type: 'FINISH' }
   | { type: 'SUBMIT_OK' }
   | { type: 'SUBMIT_FAIL'; error: string }
@@ -44,8 +77,15 @@ export const initialQuizState: QuizState = {
   index: 0,
   startedAt: null,
   finishedAt: null,
+  elapsedMs: 0,
+  runningSince: null,
   gameId: null,
   submitError: null,
+}
+
+/** Soma o trecho em andamento ao tempo acumulado. */
+function elapsedAt(state: QuizState, now: number): number {
+  return state.elapsedMs + (state.runningSince === null ? 0 : Math.max(0, now - state.runningSince))
 }
 
 export function quizReducer(state: QuizState, action: QuizAction): QuizState {
@@ -62,6 +102,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
         questions: action.questions,
         answers: action.questions.map(() => null),
         startedAt: action.now,
+        runningSince: action.now,
         gameId: action.gameId,
       }
 
@@ -71,10 +112,14 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
       const answers = state.answers.slice()
       answers[state.index] = action.answer
       const isLast = state.index === state.questions.length - 1
+      // Cada resposta fecha um trecho do cronômetro: se a página cair sem aviso,
+      // o tempo salvo perde no máximo o intervalo desde a última resposta.
       return {
         ...state,
         phase: 'feedback',
         answers,
+        elapsedMs: elapsedAt(state, action.now),
+        runningSince: isLast ? null : action.now,
         finishedAt: isLast ? action.now : state.finishedAt,
       }
     }
@@ -87,6 +132,14 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
       const changesLevel = state.questions[next].level !== state.questions[state.index].level
       return { ...state, index: next, phase: changesLevel ? 'levelTransition' : 'playing' }
     }
+
+    case 'PAUSE':
+      if (state.runningSince === null) return state
+      return { ...state, elapsedMs: elapsedAt(state, action.now), runningSince: null }
+
+    case 'RESUME':
+      if (!IN_PROGRESS_PHASES.has(state.phase) || state.runningSince !== null) return state
+      return { ...state, runningSince: action.now }
 
     case 'FINISH':
       if (state.phase !== 'finished' && state.phase !== 'submitError') return state
@@ -101,8 +154,10 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
       return { ...state, phase: 'submitError', submitError: action.error }
 
     case 'RESTORE': {
-      // Um envio interrompido pelo reload volta como erro; a fila de reenvio cuida do resto.
-      const restored = action.state
+      // O tempo fora da página não conta (RF06: retomar sem penalidade): a partida volta
+      // pausada e o cronômetro reinicia no RESUME. Um envio interrompido volta como erro;
+      // a fila de reenvio cuida do resto.
+      const restored = { ...action.state, runningSince: null }
       return restored.phase === 'submitting'
         ? { ...restored, phase: 'submitError', submitError: 'O envio foi interrompido.' }
         : restored
@@ -113,8 +168,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
   }
 }
 
+/** Tempo ativo da partida finalizada (sem pausas nem recargas); null se ainda não terminou. */
 export function durationMs(state: QuizState): number | null {
-  return state.startedAt !== null && state.finishedAt !== null
-    ? state.finishedAt - state.startedAt
-    : null
+  return state.finishedAt !== null ? state.elapsedMs : null
 }

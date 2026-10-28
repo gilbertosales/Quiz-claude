@@ -92,6 +92,56 @@ describe('quizReducer', () => {
     expect(s.answers.every((a) => a !== null)).toBe(true)
   })
 
+  describe('cronômetro (só tempo ativo)', () => {
+    it('cada resposta acumula o tempo do trecho', () => {
+      const s = run(
+        playing(), // começa em 1000
+        { type: 'ANSWER', answer: true, now: 5000 },
+        { type: 'NEXT' },
+        { type: 'ANSWER', answer: true, now: 9000 },
+      )
+      expect(s).toMatchObject({ elapsedMs: 8000, runningSince: 9000 })
+    })
+
+    it('PAUSE/RESUME descontam o tempo fora da página', () => {
+      let s = run(playing(), { type: 'PAUSE', now: 3000 }) // 2s ativos
+      expect(s).toMatchObject({ elapsedMs: 2000, runningSince: null })
+      s = run(
+        s,
+        { type: 'RESUME', now: 3_600_000 },
+        { type: 'ANSWER', answer: true, now: 3_601_000 },
+      )
+      expect(s.elapsedMs).toBe(3000) // a hora parada não conta
+    })
+
+    it('PAUSE repetido e RESUME fora de partida não mudam nada', () => {
+      const paused = run(playing(), { type: 'PAUSE', now: 3000 })
+      expect(quizReducer(paused, { type: 'PAUSE', now: 9000 })).toBe(paused)
+      expect(quizReducer(initialQuizState, { type: 'RESUME', now: 1 })).toBe(initialQuizState)
+      const done = run(playUntil(19), { type: 'ANSWER', answer: true, now: 5000 }, { type: 'NEXT' })
+      expect(quizReducer(done, { type: 'RESUME', now: 9000 })).toBe(done)
+    })
+
+    it('reload no meio da partida não penaliza: RESTORE pausa e RESUME retoma', () => {
+      const beforeUnload = run(playing(), { type: 'PAUSE', now: 4000 })
+      let s = quizReducer(initialQuizState, { type: 'RESTORE', state: beforeUnload })
+      s = run(s, { type: 'RESUME', now: 100_000 }, { type: 'ANSWER', answer: true, now: 101_000 })
+      expect(s.elapsedMs).toBe(4000)
+    })
+
+    it('a duração final é o tempo ativo', () => {
+      let s = run(playing(), { type: 'PAUSE', now: 2000 }, { type: 'RESUME', now: 50_000 })
+      expect(durationMs(s)).toBeNull()
+      for (let i = 0; i < 20; i++) {
+        s = run(s, { type: 'ANSWER', answer: true, now: 50_000 + (i + 1) * 1000 }, { type: 'NEXT' })
+        if (s.phase === 'levelTransition') s = quizReducer(s, { type: 'NEXT' })
+      }
+      expect(s.phase).toBe('finished')
+      expect(durationMs(s)).toBe(1000 + 20_000)
+      expect(s.runningSince).toBeNull()
+    })
+  })
+
   it('fluxo de envio: FINISH → SUBMIT_FAIL → FINISH → SUBMIT_OK', () => {
     let s = run(playUntil(19), { type: 'ANSWER', answer: true, now: 30_000 }, { type: 'NEXT' })
     s = quizReducer(s, { type: 'FINISH' })
@@ -102,9 +152,12 @@ describe('quizReducer', () => {
     expect(s).toMatchObject({ phase: 'done', submitError: null })
   })
 
-  it('RESTORE retoma o estado salvo e converte envio interrompido em erro', () => {
+  it('RESTORE retoma o estado salvo (pausado) e converte envio interrompido em erro', () => {
     const saved = playUntil(7)
-    expect(quizReducer(initialQuizState, { type: 'RESTORE', state: saved })).toEqual(saved)
+    expect(quizReducer(initialQuizState, { type: 'RESTORE', state: saved })).toEqual({
+      ...saved,
+      runningSince: null,
+    })
     const interrupted = { ...saved, phase: 'submitting' as const }
     expect(quizReducer(initialQuizState, { type: 'RESTORE', state: interrupted }).phase).toBe(
       'submitError',
