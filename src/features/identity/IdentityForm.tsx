@@ -41,22 +41,19 @@ export function IdentityForm({ onSubmit }: { onSubmit: (identity: Identity) => v
   const describedBy = (field: Field) => (errors[field] ? `${id}-${field}-error` : undefined)
   const errorText = (field: Field) =>
     errors[field] && (
-      <p
-        id={`${id}-${field}-error`}
-        className="mt-1 text-sm font-medium text-red-700 dark:text-red-400"
-      >
+      <p id={`${id}-${field}-error`} className="mt-1 text-sm font-medium text-bad">
         <span aria-hidden="true">⚠ </span>
         {errors[field]}
       </p>
     )
   const inputClass =
-    'mt-1 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base aria-invalid:border-red-600 dark:border-slate-700 dark:bg-slate-950 dark:aria-invalid:border-red-400'
+    'mt-1.5 block w-full rounded-lg border border-line bg-surface px-4 py-3 text-base text-ink transition-colors hover:border-muted aria-invalid:border-bad'
 
   return (
     <form ref={formRef} noValidate onSubmit={handleSubmit} className="card space-y-5">
       <div>
-        <PageHeading className="text-2xl font-bold">Antes de começar</PageHeading>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">
+        <PageHeading className="text-3xl font-medium">Antes de começar</PageHeading>
+        <p className="mt-1 text-muted">
           Seu nome aparece no ranking; o e-mail só identifica você e nunca é exibido.
         </p>
       </div>
@@ -107,7 +104,7 @@ export function IdentityForm({ onSubmit }: { onSubmit: (identity: Identity) => v
             required
             aria-invalid={!!errors.consent}
             aria-describedby={describedBy('consent')}
-            className="mt-1 size-5 shrink-0 accent-indigo-600"
+            className="mt-1 size-5 shrink-0 accent-[#d97757]"
           />
           <label htmlFor={`${id}-consent`}>
             Concordo que meu nome e pontuação sejam exibidos no ranking interno.

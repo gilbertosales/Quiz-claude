@@ -71,29 +71,26 @@ export default function ResultPage() {
   return (
     <div className="space-y-6">
       <section className="card space-y-4 text-center">
-        <PageHeading className="text-2xl font-bold">Resultado</PageHeading>
-        <p className="text-5xl font-extrabold tabular-nums">
+        <PageHeading className="text-3xl font-medium">Resultado</PageHeading>
+        <p className="font-serif text-6xl font-medium tabular-nums">
           {summary.score}
-          <span className="text-2xl font-bold text-slate-500 dark:text-slate-400">
-            {' '}
-            / {MAX_SCORE} pts
-          </span>
+          <span className="text-2xl text-muted"> / {MAX_SCORE} pts</span>
         </p>
         <dl className="grid grid-cols-3 gap-2 text-sm">
           <div>
-            <dt className="text-slate-600 dark:text-slate-400">Acertos</dt>
+            <dt className="text-muted">Acertos</dt>
             <dd className="text-lg font-semibold tabular-nums">
               {summary.correctCount}/{TOTAL_QUESTIONS}
             </dd>
           </div>
           <div>
-            <dt className="text-slate-600 dark:text-slate-400">Tempo</dt>
+            <dt className="text-muted">Tempo</dt>
             <dd className="text-lg font-semibold tabular-nums">
               {duration !== null ? formatDuration(duration) : '—'}
             </dd>
           </div>
           <div>
-            <dt className="text-slate-600 dark:text-slate-400">Posição</dt>
+            <dt className="text-muted">Posição</dt>
             <dd className="text-lg font-semibold tabular-nums">
               {myPosition ? `${myPosition}º` : '—'}
             </dd>
@@ -108,7 +105,7 @@ export default function ResultPage() {
       </section>
 
       <section aria-labelledby="por-nivel">
-        <h2 id="por-nivel" className="mb-3 text-lg font-bold">
+        <h2 id="por-nivel" className="mb-4 text-2xl font-medium">
           Acertos por nível
         </h2>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -117,21 +114,16 @@ export default function ResultPage() {
             return (
               <li key={level} className="card space-y-2 p-4 sm:p-4">
                 <p className="font-semibold">{LEVEL_LABELS[level]}</p>
-                <p className="text-2xl font-bold tabular-nums">
+                <p className="font-serif text-3xl font-medium tabular-nums">
                   {correct}/{QUESTIONS_PER_LEVEL}
                 </p>
-                <div
-                  className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
-                  aria-hidden="true"
-                >
+                <div className="h-2 overflow-hidden rounded-full bg-subtle" aria-hidden="true">
                   <div
                     className={`h-full ${LEVEL_STYLES[level].bar}`}
                     style={{ width: `${(correct / QUESTIONS_PER_LEVEL) * 100}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  {correct * POINTS_BY_LEVEL[level]} pts
-                </p>
+                <p className="text-xs text-muted">{correct * POINTS_BY_LEVEL[level]} pts</p>
               </li>
             )
           })}
@@ -148,7 +140,7 @@ export default function ResultPage() {
       </div>
 
       <section aria-labelledby="revisao">
-        <h2 id="revisao" className="mb-3 text-lg font-bold">
+        <h2 id="revisao" className="mb-4 text-2xl font-medium">
           Revisão das respostas
         </h2>
         <ol className="space-y-3">
@@ -159,20 +151,27 @@ export default function ResultPage() {
               <li key={q.id}>
                 <details className="card group p-4 sm:p-5">
                   <summary className="flex cursor-pointer list-none items-start gap-3">
-                    <span aria-hidden="true">{correct ? '✅' : '❌'}</span>
+                    <span
+                      aria-hidden="true"
+                      className={`mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-sm text-on-ink ${
+                        correct ? 'bg-ok' : 'bg-bad'
+                      }`}
+                    >
+                      {correct ? '✓' : '✗'}
+                    </span>
                     <span className="flex-1">
                       <span className="sr-only">{correct ? 'Acertou: ' : 'Errou: '}</span>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">{i + 1}. </span>
+                      <span className="text-sm text-muted">{i + 1}. </span>
                       <RichText text={q.statement} />
                     </span>
                     <span
                       aria-hidden="true"
-                      className="text-slate-500 transition-transform group-open:rotate-90 motion-reduce:transition-none"
+                      className="text-muted transition-transform group-open:rotate-90 motion-reduce:transition-none"
                     >
                       ›
                     </span>
                   </summary>
-                  <div className="mt-3 space-y-2 border-t border-slate-200 pt-3 text-sm dark:border-slate-800">
+                  <div className="mt-3 space-y-2 border-t border-line pt-3 text-sm">
                     <LevelBadge level={q.level} />
                     <p>
                       Sua resposta: <strong>{given === null ? '—' : formatAnswer(given)}</strong> ·
@@ -220,14 +219,14 @@ function SubmitStatus({
         <p>Enviando resultado para o ranking…</p>
       )}
       {phase === 'done' && (
-        <p className="text-green-800 dark:text-green-300">
+        <p className="text-ok">
           <span aria-hidden="true">✓ </span>Resultado salvo no ranking
           {loadingPosition ? '. Calculando sua posição…' : '.'}
         </p>
       )}
       {phase === 'submitError' && (
         <div className="space-y-2">
-          <p className="text-red-700 dark:text-red-400">
+          <p className="text-bad">
             <span aria-hidden="true">⚠ </span>
             {error}
           </p>

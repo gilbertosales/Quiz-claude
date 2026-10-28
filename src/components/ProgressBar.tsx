@@ -11,7 +11,7 @@ export function ProgressBar({ value, max, level }: { value: number; max: number;
       aria-valuemin={0}
       aria-valuemax={max}
       aria-valuenow={value}
-      className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+      className="h-2 w-full overflow-hidden rounded-full bg-subtle"
     >
       <div
         className={`h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none ${LEVEL_STYLES[level].bar}`}

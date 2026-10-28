@@ -1,24 +1,24 @@
 import type { Level } from '../types/quiz'
 
-// Cor sempre acompanhada do rótulo em texto (RNF02).
+// Cores dos níveis a partir dos acentos da marca (verde, azul, laranja + um roxo suave para
+// Avançado, como pede o PRD). Sempre acompanhadas do rótulo em texto (RNF02).
+// Pares texto/fundo conferidos para WCAG AA nos dois temas.
 export const LEVEL_STYLES: Record<Level, { badge: string; bar: string }> = {
   negocio: {
-    badge: 'bg-green-100 text-green-900 ring-green-600/30 dark:bg-green-900/40 dark:text-green-200',
-    bar: 'bg-green-600 dark:bg-green-500',
+    badge: 'bg-[#e9ede0] text-[#3f4d2f] dark:bg-[#2e3527] dark:text-[#c9d6b4]',
+    bar: 'bg-[#788c5d]',
   },
   basico: {
-    badge: 'bg-blue-100 text-blue-900 ring-blue-600/30 dark:bg-blue-900/40 dark:text-blue-200',
-    bar: 'bg-blue-600 dark:bg-blue-500',
+    badge: 'bg-[#e3ecf5] text-[#2c4f73] dark:bg-[#25303c] dark:text-[#b9d0e8]',
+    bar: 'bg-[#6a9bcc]',
   },
   intermediario: {
-    badge:
-      'bg-orange-100 text-orange-900 ring-orange-600/30 dark:bg-orange-900/40 dark:text-orange-200',
-    bar: 'bg-orange-600 dark:bg-orange-500',
+    badge: 'bg-[#f7e6df] text-[#8a3d22] dark:bg-[#3b2a23] dark:text-[#f2b8a4]',
+    bar: 'bg-[#d97757]',
   },
   avancado: {
-    badge:
-      'bg-purple-100 text-purple-900 ring-purple-600/30 dark:bg-purple-900/40 dark:text-purple-200',
-    bar: 'bg-purple-600 dark:bg-purple-500',
+    badge: 'bg-[#ece5f3] text-[#553c75] dark:bg-[#332c3d] dark:text-[#d5c4ea]',
+    bar: 'bg-[#9a7ab8]',
   },
 }
 

@@ -63,7 +63,7 @@ export function QuestionCard({ question, given, isLast, onAnswer, onNext }: Prop
           id="statement"
           ref={statementRef}
           tabIndex={-1}
-          className="text-lg leading-relaxed font-medium outline-none sm:text-xl"
+          className="font-serif text-xl leading-relaxed outline-none sm:text-2xl"
         >
           <RichText text={question.statement} />
         </p>
@@ -75,9 +75,8 @@ export function QuestionCard({ question, given, isLast, onAnswer, onNext }: Prop
         <AnswerButton value={false} {...{ question, given, onAnswer }} />
       </fieldset>
       {!answered && (
-        <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-          Atalhos: <kbd className="font-mono">V</kbd> / <kbd className="font-mono">←</kbd> para
-          Verdadeiro, <kbd className="font-mono">F</kbd> / <kbd className="font-mono">→</kbd> para
+        <p className="text-center text-sm text-muted">
+          Atalhos: <Kbd>V</Kbd> / <Kbd>←</Kbd> para Verdadeiro, <Kbd>F</Kbd> / <Kbd>→</Kbd> para
           Falso
         </p>
       )}
@@ -85,18 +84,28 @@ export function QuestionCard({ question, given, isLast, onAnswer, onNext }: Prop
       <div aria-live="polite">
         {answered && (
           <div
-            className={`card motion-safe:animate-fade-in border-l-4 ${
-              correct
-                ? 'border-l-green-600 dark:border-l-green-500'
-                : 'border-l-red-600 dark:border-l-red-500'
+            className={`motion-safe:animate-fade-in rounded-2xl p-5 sm:p-7 ${
+              correct ? 'bg-ok-bg' : 'bg-bad-bg'
             }`}
           >
-            <p className="text-lg font-bold">
-              <span aria-hidden="true">{correct ? '✅ ' : '❌ '}</span>
+            <p
+              className={`flex items-center gap-2.5 font-serif text-xl font-medium ${
+                correct ? 'text-ok' : 'text-bad'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`inline-flex size-7 items-center justify-center rounded-full text-base text-on-ink ${
+                  correct ? 'bg-ok' : 'bg-bad'
+                }`}
+              >
+                {correct ? '✓' : '✗'}
+              </span>
               {correct ? 'Correto!' : 'Incorreto'}
             </p>
-            <p className="mt-1 text-slate-700 dark:text-slate-300">
-              Resposta correta: <strong>{formatAnswer(question.answer)}</strong>
+            <p className="mt-2 text-muted">
+              Resposta correta:{' '}
+              <strong className="text-ink">{formatAnswer(question.answer)}</strong>
             </p>
             <p className="mt-3 leading-relaxed">
               <RichText text={question.explanation} />
@@ -140,14 +149,13 @@ function AnswerButton({
   const chosen = given === value
   const isRight = question.answer === value
 
-  let state =
-    'border-slate-300 bg-white hover:border-indigo-500 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
+  let state = 'border-line bg-surface hover:border-ink hover:bg-subtle'
   if (answered) {
     state = isRight
-      ? 'border-green-600 bg-green-50 text-green-900 dark:border-green-500 dark:bg-green-950 dark:text-green-100'
+      ? 'border-ok bg-ok-bg text-ok'
       : chosen
-        ? 'border-red-600 bg-red-50 text-red-900 dark:border-red-500 dark:bg-red-950 dark:text-red-100'
-        : 'border-slate-200 bg-white opacity-60 dark:border-slate-800 dark:bg-slate-900'
+        ? 'border-bad bg-bad-bg text-bad'
+        : 'border-line bg-surface opacity-50'
   }
 
   return (
@@ -156,15 +164,23 @@ function AnswerButton({
       disabled={answered}
       aria-pressed={chosen}
       onClick={() => onAnswer(value)}
-      className={`flex min-h-16 flex-col items-center justify-center rounded-2xl border-2 px-3 py-3 text-lg font-bold transition-colors disabled:cursor-default ${state}`}
+      className={`flex min-h-20 flex-col items-center justify-center rounded-2xl border-2 px-3 py-3 font-serif text-xl font-medium transition-colors disabled:cursor-default ${state}`}
     >
       <span>{formatAnswer(value)}</span>
       {answered && (isRight || chosen) && (
-        <span className="text-xs font-medium">
+        <span className="font-sans text-xs font-medium">
           {isRight ? 'Resposta correta' : 'Sua resposta'}
           {isRight && chosen ? ' · sua resposta' : ''}
         </span>
       )}
     </button>
+  )
+}
+
+function Kbd({ children }: { children: string }) {
+  return (
+    <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono text-xs text-ink">
+      {children}
+    </kbd>
   )
 }

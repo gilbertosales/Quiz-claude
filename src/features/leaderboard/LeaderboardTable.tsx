@@ -17,7 +17,7 @@ export function LeaderboardTable({ rows, limit = 50 }: { rows: LeaderboardRow[];
     <div className="card overflow-hidden p-0 sm:p-0">
       <table className="w-full text-left text-sm sm:text-base">
         <caption className="sr-only">Ranking: top {limit} por pontuação e tempo</caption>
-        <thead className="bg-slate-100 text-xs tracking-wide text-slate-700 uppercase dark:bg-slate-800 dark:text-slate-300">
+        <thead className="border-b border-line text-xs tracking-[0.08em] text-muted uppercase">
           <tr>
             <th scope="col" className="px-3 py-3 sm:px-4">
               #
@@ -43,7 +43,7 @@ export function LeaderboardTable({ rows, limit = 50 }: { rows: LeaderboardRow[];
           {pinned && (
             <>
               <tr aria-hidden="true">
-                <td colSpan={5} className="py-1 text-center text-slate-500">
+                <td colSpan={5} className="py-1 text-center text-muted">
                   ⋯
                 </td>
               </tr>
@@ -60,16 +60,12 @@ function Row({ row }: { row: LeaderboardRow }) {
   return (
     <tr
       aria-current={row.isMe ? 'true' : undefined}
-      className={`border-t border-slate-200 dark:border-slate-800 ${
-        row.isMe ? 'bg-indigo-50 font-semibold dark:bg-indigo-950' : ''
-      }`}
+      className={`border-t border-line ${row.isMe ? 'bg-subtle font-semibold' : ''}`}
     >
       <td className="px-3 py-3 tabular-nums sm:px-4">{row.position}º</td>
       <td className="max-w-[9rem] truncate px-3 py-3 sm:max-w-none sm:px-4">
         {row.name}
-        {row.isMe && (
-          <span className="ml-1 text-xs text-indigo-700 dark:text-indigo-300">(você)</span>
-        )}
+        {row.isMe && <span className="ml-1.5 text-xs font-medium text-clay-ink">(você)</span>}
       </td>
       <td className="px-3 py-3 text-right tabular-nums sm:px-4">
         {row.score}
@@ -89,10 +85,7 @@ export function LeaderboardSkeleton() {
   return (
     <div className="card space-y-3" aria-busy="true" aria-label="Carregando ranking">
       {Array.from({ length: 6 }, (_, i) => (
-        <div
-          key={i}
-          className="h-6 rounded bg-slate-200 motion-safe:animate-pulse dark:bg-slate-800"
-        />
+        <div key={i} className="h-6 rounded bg-subtle motion-safe:animate-pulse" />
       ))}
     </div>
   )

@@ -80,7 +80,7 @@ export default function QuizPage() {
             {score} pts
           </span>
         </div>
-        <h1 className="text-sm font-medium text-slate-600 dark:text-slate-400">
+        <h1 className="font-sans text-sm font-medium tracking-normal text-muted">
           Pergunta {index + 1} de {questions.length}
         </h1>
         <ProgressBar value={answeredCount} max={questions.length} level={question.level} />

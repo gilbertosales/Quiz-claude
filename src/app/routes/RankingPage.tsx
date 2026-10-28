@@ -12,8 +12,8 @@ export default function RankingPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <PageHeading className="text-2xl font-bold">Ranking</PageHeading>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <PageHeading className="text-3xl font-medium sm:text-4xl">Ranking</PageHeading>
+          <p className="text-sm text-muted">
             Melhor partida de cada pessoa · pontuação, depois menor tempo.
           </p>
         </div>

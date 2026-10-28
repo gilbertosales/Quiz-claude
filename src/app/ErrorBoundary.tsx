@@ -34,8 +34,8 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.error) return this.props.children
     return (
       <div role="alert" className="card space-y-4 text-center">
-        <h1 className="text-2xl font-bold">Algo deu errado</h1>
-        <p className="text-slate-700 dark:text-slate-300">
+        <h1 className="text-3xl font-medium">Algo deu errado</h1>
+        <p className="text-muted">
           Não foi possível exibir esta tela. Seus resultados já enviados continuam no ranking.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">

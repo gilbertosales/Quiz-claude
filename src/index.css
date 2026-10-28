@@ -1,7 +1,68 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/lora/wght.css';
+@import '@fontsource/poppins/latin-400.css';
+@import '@fontsource/poppins/latin-500.css';
+@import '@fontsource/poppins/latin-600.css';
 
-@theme {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+/*
+ * Visual inspirado em claude.com, com as cores e fontes da marca Anthropic.
+ * Os tokens mudam sozinhos no tema escuro: componentes usam bg-canvas, text-ink etc.
+ * sem variantes dark:. Contraste de texto conferido para WCAG AA (≥ 4,5:1).
+ * O laranja da marca (#d97757) não passa como texto sobre o creme (2,96:1):
+ * use `clay` só em detalhes e `clay-ink` para texto.
+ */
+:root {
+  --c-canvas: #faf9f5;
+  --c-surface: #ffffff;
+  --c-subtle: #f0eee6;
+  --c-line: #e8e6dc;
+  --c-ink: #141413;
+  --c-muted: #5e5d59;
+  --c-on-ink: #faf9f5;
+  --c-clay: #d97757;
+  --c-clay-ink: #a8502f;
+  --c-ok: #4a6331;
+  --c-ok-bg: #eef1e6;
+  --c-bad: #a63a24;
+  --c-bad-bg: #f9e9e3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-canvas: #1f1e1d;
+    --c-surface: #262624;
+    --c-subtle: #30302e;
+    --c-line: #3d3d3a;
+    --c-ink: #faf9f5;
+    --c-muted: #b0aea5;
+    --c-on-ink: #1f1e1d;
+    --c-clay: #d97757;
+    --c-clay-ink: #e5937a;
+    --c-ok: #b3c994;
+    --c-ok-bg: #2a3122;
+    --c-bad: #f29a83;
+    --c-bad-bg: #3b2620;
+  }
+}
+
+@theme inline {
+  --font-sans: Poppins, Arial, system-ui, sans-serif;
+  --font-serif: 'Lora Variable', Lora, Georgia, serif;
+
+  --color-canvas: var(--c-canvas);
+  --color-surface: var(--c-surface);
+  --color-subtle: var(--c-subtle);
+  --color-line: var(--c-line);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-on-ink: var(--c-on-ink);
+  --color-clay: var(--c-clay);
+  --color-clay-ink: var(--c-clay-ink);
+  --color-ok: var(--c-ok);
+  --color-ok-bg: var(--c-ok-bg);
+  --color-bad: var(--c-bad);
+  --color-bad-bg: var(--c-bad-bg);
+
   --animate-fade-in: fade-in 180ms ease-out;
 }
 
@@ -22,34 +83,45 @@
   }
 
   body {
-    @apply min-h-dvh bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+    @apply min-h-dvh bg-canvas font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-serif tracking-tight text-balance;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-indigo-600 dark:outline-indigo-400;
+    @apply outline-2 outline-offset-2 outline-clay-ink;
   }
 
   code {
-    @apply rounded bg-slate-200/70 px-1 py-0.5 font-mono text-[0.9em] dark:bg-slate-800;
+    @apply rounded-md bg-subtle px-1.5 py-0.5 font-mono text-[0.88em];
   }
 }
 
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-2.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60;
 }
 
+/* Botão principal escuro, como no claude.com (no tema escuro ele fica claro). */
 @utility btn-primary {
-  @apply btn bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-400 dark:text-slate-950 dark:hover:bg-indigo-300;
+  @apply btn bg-ink text-on-ink hover:opacity-85;
 }
 
 @utility btn-secondary {
-  @apply btn border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800;
+  @apply btn border border-line bg-surface text-ink hover:bg-subtle;
 }
 
 @utility card {
-  @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900;
+  @apply rounded-2xl border border-line bg-surface p-5 sm:p-7;
 }
 
 @utility link {
-  @apply font-medium text-indigo-700 underline underline-offset-2 hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-indigo-200;
+  @apply font-medium text-clay-ink underline decoration-1 underline-offset-4 hover:decoration-2;
+}
+
+@utility eyebrow {
+  @apply text-xs font-medium tracking-[0.12em] text-muted uppercase;
 }

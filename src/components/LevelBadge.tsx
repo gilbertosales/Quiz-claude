@@ -4,7 +4,7 @@ import { LEVEL_STYLES } from './levels'
 export function LevelBadge({ level, prefix = 'Nível' }: { level: Level; prefix?: string }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset ${LEVEL_STYLES[level].badge}`}
+      className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${LEVEL_STYLES[level].badge}`}
     >
       {prefix ? `${prefix} ` : ''}
       {LEVEL_LABELS[level]}
