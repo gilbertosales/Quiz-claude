@@ -39,6 +39,8 @@ Para rodar um único teste: `npx vitest run src/features/quiz/scoring.test.ts` o
 
 ## Supabase
 
+> 📖 **Primeira vez?** Siga o guia ilustrado [`docs/SUPABASE.md`](./docs/SUPABASE.md), com prints de onde clicar e de onde copiar a URL e a chave.
+
 A migração está em [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql). O front só usa a chave `anon`: as tabelas têm RLS e não têm policies, e toda leitura e escrita passa pelas funções `submit_result` e `get_leaderboard` (`security definer`).
 
 ```bash
