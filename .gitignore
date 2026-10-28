@@ -37,3 +37,6 @@ dist-e2e
 
 # variáveis para importar na Vercel (contém a chave)
 vercel.env
+
+# ferramenta de prints para tutoriais
+FERRAMENTA-PRINTS.md

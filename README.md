@@ -73,6 +73,10 @@ Regras aplicadas no banco:
 - O `vercel.json` já tem o rewrite de SPA.
 - Configure as quatro variáveis `VITE_*` em **Production** e **Preview**.
 
+## Ferramenta para prints de tutoriais
+
+Os guias em `docs/` usam prints anotados com a ferramenta **🖍️ Destacar Prints** (caixas numeradas, desfoque e textos escondidos, direto no navegador). Veja como instalar e usar em [`docs/FERRAMENTA-PRINTS.md`](./docs/FERRAMENTA-PRINTS.md).
+
 ## Banco de perguntas
 
 As perguntas ficam em `src/data/questions.json` e são validadas por `src/data/questions.test.ts`: schema Zod, IDs únicos, ≥ 5 por nível, `docUrl` com `https://` e entre 30% e 70% de "Verdadeiro" por nível.
